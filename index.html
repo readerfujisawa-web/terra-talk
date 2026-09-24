@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#F7F6F2">
+</head>
+<body>
+<title>玄関先チェックリスト</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap">
+
+<style>
+:root{
+  --paper:#F7F6F2; --paper-2:#FFFFFF; --wash:#EDEAE2;
+  --ink:#16181B; --ink-2:#4A4E55; --ink-3:#7C818A;
+  --rule:#D6D2C7; --rule-strong:#AFAA9C;
+  --ai:#1F3A5F; --ai-soft:#E3E9F0;
+  --enji:#8C2F39; --enji-soft:#F3E3E4;
+  --aotake:#28604F; --aotake-soft:#E1EDE7;
+  --mincho:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho","MS PMincho",serif;
+  --gothic:"Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#14161A; --paper-2:#1A1D22; --wash:#1F232A;
+    --ink:#E9E7E1; --ink-2:#B4B8BF; --ink-3:#868C95;
+    --rule:#2E333A; --rule-strong:#4A515B;
+    --ai:#9DBCDF; --ai-soft:#1D2733;
+    --enji:#E3909A; --enji-soft:#2E2024;
+    --aotake:#83C6B2; --aotake-soft:#18271F;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#14161A; --paper-2:#1A1D22; --wash:#1F232A;
+  --ink:#E9E7E1; --ink-2:#B4B8BF; --ink-3:#868C95;
+  --rule:#2E333A; --rule-strong:#4A515B;
+  --ai:#9DBCDF; --ai-soft:#1D2733;
+  --enji:#E3909A; --enji-soft:#2E2024;
+  --aotake:#83C6B2; --aotake-soft:#18271F;
+}
+
+*{box-sizing:border-box;}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--gothic);font-size:16px;line-height:1.85;-webkit-font-smoothing:antialiased;}
+.wrap{max-width:720px;margin:0 auto;padding:48px 22px 96px;}
+
+header{border-top:3px solid var(--ink);border-bottom:1px solid var(--rule-strong);padding:20px 0 22px;display:flex;flex-direction:column;gap:10px;}
+.eyebrow{font-size:11px;letter-spacing:.3em;color:var(--ai);font-weight:700;}
+h1{font-family:var(--mincho);font-weight:700;font-size:clamp(28px,8vw,40px);line-height:1.25;letter-spacing:.05em;margin:0;}
+header p{margin:0;font-size:14.5px;color:var(--ink-2);}
+
+section{padding-top:48px;display:flex;flex-direction:column;gap:18px;}
+h2{font-family:var(--mincho);font-weight:600;font-size:22px;letter-spacing:.04em;margin:0;padding-bottom:10px;border-bottom:1px solid var(--rule-strong);}
+h3{font-family:var(--mincho);font-weight:600;font-size:17px;margin:0;}
+p{margin:0;}
+.lede{font-size:14.5px;color:var(--ink-2);}
+
+/* 必須4項目 */
+ol.must{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;}
+ol.must li{display:grid;grid-template-columns:34px 1fr;gap:14px;padding:18px 0;border-bottom:1px solid var(--rule);align-items:start;}
+ol.must li:first-child{border-top:1px solid var(--rule);}
+ol.must .n{font-family:var(--mincho);font-size:22px;font-weight:700;color:var(--ai);line-height:1.2;font-variant-numeric:tabular-nums;}
+ol.must .t{display:flex;flex-direction:column;gap:5px;}
+ol.must .t strong{font-size:17px;font-weight:700;line-height:1.55;}
+ol.must .t span{font-size:14px;color:var(--ink-2);line-height:1.75;}
+ol.must .say{font-family:var(--mincho);font-size:15px;border-left:2px solid var(--aotake);padding-left:12px;color:var(--ink);background:var(--aotake-soft);padding:8px 12px;}
+
+/* 表 */
+.scroller{overflow-x:auto;border-top:2px solid var(--ink);border-bottom:2px solid var(--ink);}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:14px;line-height:1.6;}
+thead th{background:var(--paper);text-align:left;font-size:11px;letter-spacing:.1em;font-weight:700;color:var(--ink-3);padding:10px;border-bottom:1px solid var(--rule-strong);white-space:nowrap;}
+tbody td{padding:11px 10px;border-bottom:1px solid var(--rule);vertical-align:top;}
+tbody tr:nth-child(even){background:var(--wash);}
+td.pn{font-family:var(--mincho);font-size:16px;font-weight:600;white-space:nowrap;}
+td.age{white-space:nowrap;font-variant-numeric:tabular-nums;}
+.warn{color:var(--enji);font-weight:700;}
+.banner{font-family:var(--mincho);font-size:14px;font-weight:600;letter-spacing:.08em;padding:10px;background:var(--ink);color:var(--paper);}
+
+/* 抜けている3つ */
+.miss{display:flex;flex-direction:column;border:1px solid var(--enji);}
+.miss > div{padding:18px 20px;border-bottom:1px solid var(--rule);display:flex;flex-direction:column;gap:6px;background:var(--enji-soft);}
+.miss > div:last-child{border-bottom:0;}
+.miss .hd{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;}
+.miss .cnt{font-family:var(--mincho);font-size:24px;font-weight:700;color:var(--enji);font-variant-numeric:tabular-nums;line-height:1.1;}
+.miss .lb{font-size:16px;font-weight:700;}
+.miss p{font-size:13.5px;color:var(--ink-2);}
+
+/* 見本 */
+.samples{display:flex;flex-direction:column;gap:0;}
+.sample{padding:18px 0;border-bottom:1px solid var(--rule);display:flex;flex-direction:column;gap:7px;}
+.sample:first-child{border-top:1px solid var(--rule);}
+.sample .cap{font-size:11.5px;letter-spacing:.12em;font-weight:700;color:var(--aotake);}
+.sample .q{font-family:var(--mincho);font-size:16px;line-height:1.8;border-left:2px solid var(--rule-strong);padding-left:14px;}
+.sample .by{font-size:12.5px;color:var(--ink-3);}
+
+/* 締め */
+.final{margin-top:48px;border:2px solid var(--ink);padding:24px 22px;display:flex;flex-direction:column;gap:14px;background:var(--paper-2);}
+.final h3{font-size:18px;}
+ul.chk{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:11px;}
+ul.chk li{display:grid;grid-template-columns:22px 1fr;gap:12px;align-items:start;font-size:15.5px;line-height:1.7;}
+ul.chk .box{width:17px;height:17px;border:1.5px solid var(--ink-2);margin-top:6px;}
+
+footer{margin-top:52px;padding-top:16px;border-top:1px solid var(--rule);font-size:12.5px;color:var(--ink-3);}
+</style>
+
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">訪問販売事業部</div>
+    <h1>玄関先チェックリスト</h1>
+    <p>商材を問わず必ず言うこと、商材ごとに必ず確認すること。録音を全件見直して、実際に抜けやすい順に並べ直しました。</p>
+  </header>
+
+  <section>
+    <h2>どの商材でも必ず言う 4つ</h2>
+    <ol class="must">
+      <li>
+        <span class="n">1</span>
+        <span class="t">
+          <strong>強制ではないと伝える</strong>
+          <span>断る選択肢があることを、こちらから先に出す。</span>
+          <span class="say">「これ全然強制的なご案内ではなかったので、こだわりがあって今のまま使いたい方はお断りさせてもらってます」</span>
+        </span>
+      </li>
+      <li>
+        <span class="n">2</span>
+        <span class="t">
+          <strong>建物や地域全体の契約ではないと伝える</strong>
+          <span>「地域全体でやってます」という言い方は逆効果。一軒ずつの任意だと必ず添える。</span>
+          <span class="say">「建物全体、地域全体じゃなくて、下げられる方だけ一軒ずつ対応させてもらってます」</span>
+        </span>
+      </li>
+      <li>
+        <span class="n">3</span>
+        <span class="t">
+          <strong>クーリングオフを説明する</strong>
+          <span>水だけでなく<span class="warn">電気でも必須</span>。書面を渡して、口頭でも8日間に触れる。「長いので流します」はNG。</span>
+          <span class="say">「契約してから8日間はお客様側で考え直せる期間になってますので、そちらもご確認お願いします」</span>
+        </span>
+      </li>
+      <li>
+        <span class="n">4</span>
+        <span class="t">
+          <strong>代理操作・代筆はしない</strong>
+          <span>画面の操作も、書面の記入も、お客様ご自身の手で。こちらは案内まで。</span>
+        </span>
+      </li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>電気</h2>
+    <p class="lede">3商材とも <strong>18歳以上70歳未満</strong>。アースのみ学生の18歳・19歳は不可。</p>
+    <div class="scroller">
+      <div class="banner">電気</div>
+      <table>
+        <thead><tr><th>商材</th><th>年齢</th><th>必ず言うこと</th></tr></thead>
+        <tbody>
+          <tr><td class="pn">アース</td><td class="age">18〜69歳<br><span class="warn">学生18・19はNG</span></td><td>燃料調整費の説明</td></tr>
+          <tr><td class="pn">auでんき</td><td class="age">18〜69歳</td><td>この後の電話で契約完了であること<br>燃料調整費の説明</td></tr>
+          <tr><td class="pn">エネワン</td><td class="age">18〜69歳</td><td>この後の電話で契約完了であること<br>燃料調整費の説明</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>水</h2>
+    <p class="lede">年齢・契約年数・解約したときどうなるか。この3点セットで伝える。</p>
+    <div class="scroller">
+      <div class="banner">水</div>
+      <table>
+        <thead><tr><th>商材</th><th>年齢</th><th>契約</th><th>期間内に解約すると</th></tr></thead>
+        <tbody>
+          <tr><td class="pn">ファム</td><td class="age">20〜69歳</td><td>5年 割賦</td><td>機械の残債分を請求</td></tr>
+          <tr><td class="pn">ロカスマ</td><td class="age">20〜69歳</td><td>5年 レンタル</td><td>解約金がかかる</td></tr>
+          <tr><td class="pn">リッタ</td><td class="age">20〜69歳</td><td>5年 レンタル</td><td>解約金がかかる</td></tr>
+          <tr><td class="pn">うるのん</td><td class="age">18〜69歳</td><td>4年 レンタル</td><td>解約金がかかる</td></tr>
+          <tr><td class="pn">まるっと</td><td class="age">18〜69歳</td><td>5年 レンタル</td><td>解約金がかかる</td></tr>
+          <tr><td class="pn">スタイリス</td><td class="age">18〜69歳</td><td>6年 割賦</td><td>機械の残債分を請求</td></tr>
+          <tr><td class="pn">フレシャス</td><td class="age">18〜69歳<br><span class="warn">学生18・19はNG</span></td><td>6年 割賦</td><td>機械の残債分を請求</td></tr>
+          <tr><td class="pn">PW</td><td class="age">—</td><td>—</td><td>オプションの無料期間を説明<br>配送月の末まで、または配送付きの翌月末まで無料</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>その他</h2>
+    <div class="scroller">
+      <div class="banner">U-NEXT／スマサポ</div>
+      <table>
+        <thead><tr><th>商材</th><th>年齢</th><th>必ず言うこと</th></tr></thead>
+        <tbody>
+          <tr><td class="pn">U-NEXT</td><td class="age">18歳以上<br><span class="warn">高校生は不可</span></td><td><span class="warn">解約を促す行為はNG</span></td></tr>
+          <tr><td class="pn">スマサポ</td><td class="age">—</td><td>申込日から翌月の25日まで無料<br>それ以降は月々500円</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>いま一番抜けているもの</h2>
+    <p class="lede">9/18〜9/21の商談20件の録音を全部見直した結果です。誰が、ではなく、どこが抜けているかの話。</p>
+    <div class="miss">
+      <div>
+        <div class="hd"><span class="cnt">0 / 11</span><span class="lb">燃料調整費</span></div>
+        <p>電気の商談11件すべてで、一度も出ていませんでした。是正トークのプロット6に文面が入っているので、そこまで行かずに帳票へ進んでいる可能性が高いです。</p>
+      </div>
+      <div>
+        <div class="hd"><span class="cnt">0 / 11</span><span class="lb">クーリングオフ（電気）</span></div>
+        <p>水の商談では9件中7件で説明できています。電気だけがゼロ。商材で切り替わっているだけなので、同じことを電気でも言えば済みます。<strong>9/22の商談で、電気でも言えている人が出ました。</strong>下の見本をそのまま使ってください。</p>
+      </div>
+      <div>
+        <div class="hd"><span class="cnt">3 / 9</span><span class="lb">解約金・残債の説明なし</span></div>
+        <p>乗り換えや長期契約なのに、期間内に解約したらどうなるかを伝えていない商談が3件ありました。ここは後からクレームに直結します。</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>言い方の見本</h2>
+    <p class="lede">実際の録音から。そのまま真似していい形。</p>
+    <div class="samples">
+      <div class="sample">
+        <div class="cap">電気でも、クーリングオフをこう言う</div>
+        <div class="q">「今日から8日以内だったら、なかったことにできますよっていうものになってますので、必要があれば言ってください」</div>
+        <div class="by">9/22の電気の商談から。重く言わず、確認事項のひとつとして流れの中で置いている。これが一番真似しやすい形。</div>
+      </div>
+      <div class="sample">
+        <div class="cap">燃料調整費は、確認書の流れで続けて言う</div>
+        <div class="q">「8日間以内だったら無条件でキャンセルはできますので、お願いします。その下は燃料調整費っていうのがあって、ガソリンの料金みたいに毎月変動するんですけど……」</div>
+        <div class="by">同じく9/22から。書面を上から読み上げる流れに乗せると、クーリングオフと燃料調整費がまとめて片付く。</div>
+      </div>
+      <div class="sample">
+        <div class="cap">年数と年齢を、ひと息で確認する</div>
+        <div class="q">「あと五年、20歳以上の方になるんですが、そこは大丈夫でしょうか」</div>
+        <div class="by">水の商談で一番きれいに決まっていた形。年齢と契約期間を分けて聞かず、条件としてまとめて確認している。</div>
+      </div>
+      <div class="sample">
+        <div class="cap">名乗りと訪問目的を、冒頭でそろえる</div>
+        <div class="q">「保土ヶ谷区の担当で入らせてもらってまして、電気とかガスとか水とかネットとか、インフラ全般の環境改善だったりコストカットのサポートという形で入らせてもらってます」</div>
+        <div class="by">「ライフラインの確認で」だけで止めない。何の話で来たのかまで言い切る。</div>
+      </div>
+      <div class="sample">
+        <div class="cap">確認事項を、番号順に読み上げる</div>
+        <div class="q">「7番が、建物全体・地域全体ではなくて任意で下げてますよという話になります。8番、最短で来月切り替わります」</div>
+        <div class="by">抜けが出ない人は、記憶ではなく確認書の番号順で処理している。これが一番再現性が高い。</div>
+      </div>
+      <div class="sample">
+        <div class="cap">下がると言い切らない</div>
+        <div class="q">「日本は火力発電への依存度が高いので、どうしても絶対下がるとかは言えないんですけどね」</div>
+        <div class="by">是正トークのプロット6より。断定を避けつつ信用を上げる言い方。</div>
+      </div>
+      <div class="sample">
+        <div class="cap">迷いがありそうなら、第三者の確認を先に挟む</div>
+        <div class="q">「なんか周りの方とか、ご友人とかに聞かなくても大丈夫でしょうか」</div>
+        <div class="by">日本語が不自由な方、若い方、判断に迷いが見える方には、こちらから確認を入れる。</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="final">
+    <h3>玄関を出る前に、この5つ</h3>
+    <ul class="chk">
+      <li><span class="box"></span><span>社名と、何の話で来たかを言った</span></li>
+      <li><span class="box"></span><span>強制ではない／建物・地域全体ではないと言った</span></li>
+      <li><span class="box"></span><span>年齢の条件を確認した（商材ごとに違う）</span></li>
+      <li><span class="box"></span><span>電気なら燃料調整費、水なら契約年数と解約金を言った</span></li>
+      <li><span class="box"></span><span>クーリングオフを説明して、書面を渡した</span></li>
+    </ul>
+  </div>
+
+  <div style="margin-top:34px;padding-top:15px;border-top:1px solid var(--rule);font-size:12.5px;">
+    <a href="kanri.html" style="color:var(--ink-3);text-decoration:none;border-bottom:1px solid var(--rule-strong);padding-bottom:1px;">管理職向けページ（パスワードが必要です）</a>
+  </div>  <footer>
+    2026年9月22日版／9月18日〜21日の商談録音20件の全文を見直して作成。条件が変わったら更新します。
+  </footer>
+
+</div>
+
+</body>
+</html>
