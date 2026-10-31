@@ -52,14 +52,15 @@ textarea:focus{outline:none; border-color:var(--accent)}
   color:var(--ink-2); display:none}
 .scene.on{display:block}
 .scene b{color:var(--ink); font-weight:500}
-.meter{position:sticky; top:0; z-index:5; background:var(--ground); padding:13px 0 12px;
-  border-bottom:1px solid var(--rule); display:none; align-items:baseline; gap:14px;
-  font-size:11.5px; letter-spacing:.14em; color:var(--ink-3)}
-.meter.on{display:flex}
-.bars{display:flex; gap:4px}
-.bar{width:22px; height:3px; background:var(--rule-strong)}
-.bar.lit{background:var(--accent)}
-.strikes{color:var(--reject); letter-spacing:.3em}
+.flow{position:sticky; top:0; z-index:5; background:var(--ground);
+  padding:12px 0 11px; border-bottom:1px solid var(--rule); display:none}
+.flow.on{display:block}
+.steps{display:flex; gap:3px; margin-bottom:7px}
+.step{flex:1; height:4px; background:var(--rule-strong)}
+.step.done{background:var(--ok)}
+.step.now{background:var(--accent)}
+.flowtxt{font-size:11.5px; letter-spacing:.1em; color:var(--ink-3); display:flex; gap:12px}
+.flownext{color:var(--accent)}
 .elapsed{margin-left:auto; font-variant-numeric:tabular-nums}
 .talk{padding:8px 0 0; display:none}
 .talk.on{display:block}
@@ -71,14 +72,14 @@ textarea:focus{outline:none; border-color:var(--accent)}
 .rep{padding-left:22px; border-left:2px solid var(--rule-strong); margin-left:2px}
 .rep .line{font-size:14.5px; color:var(--ink-2)}
 .got{font-size:11.5px; color:var(--ok); margin:8px 0 0; letter-spacing:.06em}
-.sys{font-family:var(--mincho); font-size:15px; color:var(--reject); padding:26px 0;
+.got.warn{color:var(--reject)}
+.sys{font-family:var(--mincho); font-size:16px; color:var(--ok); padding:28px 0;
   border-bottom:1px solid var(--rule); letter-spacing:.08em}
-.sys.good{color:var(--ok)}
+.sys.bad{color:var(--reject)}
 .compose{padding:22px 0 0; display:none; gap:10px; align-items:flex-end}
 .compose.on{display:flex}
 button.send{font-family:var(--mincho); font-size:15px; letter-spacing:.14em; color:var(--ground);
   background:var(--accent); border:none; padding:13px 22px; cursor:pointer; white-space:nowrap}
-button.send:disabled{background:var(--rule-strong); cursor:default}
 button.mic{font-family:var(--mincho); font-size:15px; letter-spacing:.14em; color:var(--accent);
   background:transparent; border:1px solid var(--accent); padding:13px 20px; cursor:pointer;
   white-space:nowrap}
@@ -91,16 +92,20 @@ button.send:focus-visible,button.mic:focus-visible{outline:2px solid var(--ink);
 .micerr{display:none; font-size:12.5px; color:var(--reject); margin:10px 0 0;
   padding:12px 0 0; border-top:1px solid var(--rule)}
 .micerr.on{display:block}
-.score{padding:30px 0 0; display:none}
+.endbar{padding:18px 0 0; display:none}
+.endbar.on{display:block}
+.endbtn{font-family:var(--gothic); font-size:12.5px; color:var(--ink-3); background:transparent;
+  border:1px solid var(--rule-strong); padding:8px 16px; cursor:pointer}
+.score{padding:30px 0 0; display:none; scroll-margin-top:72px}
 .score.on{display:block}
 h2{font-family:var(--mincho); font-weight:600; font-size:19px; letter-spacing:.14em;
   margin:0 0 4px; padding-bottom:12px; border-bottom:1px solid var(--rule-strong);
-  scroll-margin-top:60px}
-.score{scroll-margin-top:60px}
+  scroll-margin-top:72px}
 h2.sp{margin-top:34px}
 table{width:100%; border-collapse:collapse; margin:0 0 10px; font-size:14px}
-th,td{text-align:left; padding:11px 0; border-bottom:1px solid var(--rule); vertical-align:top}
+th,td{text-align:left; padding:10px 0; border-bottom:1px solid var(--rule); vertical-align:top}
 th{font-weight:500; color:var(--ink-2)}
+th .no{color:var(--ink-3); font-size:12px; margin-right:9px; font-variant-numeric:tabular-nums}
 td.mark{text-align:right; font-family:var(--mincho); font-size:17px; width:3.5em}
 td.mark.yes{color:var(--ok)}
 td.mark.no{color:var(--reject)}
@@ -113,6 +118,7 @@ footer{padding:40px 0 0; margin-top:40px; border-top:1px solid var(--rule);
 @media (max-width:560px){
   .wrap{padding:0 18px 72px} h1{font-size:24px} .cust .line{font-size:17px}
   .compose{flex-direction:column; align-items:stretch}
+  .flowtxt{font-size:10.5px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none !important}}
 </style>
@@ -121,12 +127,12 @@ footer{padding:40px 0 0; margin-top:40px; border-top:1px solid var(--rule);
 <div class="wrap">
   <header>
     <h1>玄関先ロープレ</h1>
-    <p class="sub">実録音1,708商談から起こした客・電気（単身／集合住宅）</p>
+    <p class="sub">契約になった198商談の流れを、そのまま再現</p>
   </header>
 
   <section class="setup" id="setup">
     <div class="field">
-      <p class="label">出てくる客の型</p>
+      <p class="label">お客様</p>
       <div class="choices" id="kinds"></div>
       <p class="note" id="kindNote"></p>
     </div>
@@ -140,18 +146,23 @@ footer{padding:40px 0 0; margin-top:40px; border-top:1px solid var(--rule);
       <p class="note" id="voiceNote">まず「マイクの確認」を押してください。許可を聞かれたら「許可」を選びます。</p>
     </div>
     <div class="field">
-      <p class="label">はじめ方</p>
+      <p class="label">やること</p>
       <div class="choices"><button class="choice" id="go">インターホンを押す</button></div>
-      <p class="note">刺されば関心が1つ上がります。3回続けて外すと扉が閉まります。</p>
+      <p class="note">このお客様は契約まで行く人です。13段階を自分で運びきってください。順番を飛ばすと戸惑います。</p>
     </div>
   </section>
 
   <div class="scene" id="scene"></div>
-  <div class="meter" id="meter">
-    <span>関心</span><span class="bars" id="bars"></span>
-    <span class="strikes" id="strikes"></span>
-    <span class="elapsed" id="elapsed"></span>
+
+  <div class="flow" id="flow">
+    <div class="steps" id="steps"></div>
+    <div class="flowtxt">
+      <span id="flowDone"></span>
+      <span class="flownext" id="flowNext"></span>
+      <span class="elapsed" id="elapsed"></span>
+    </div>
   </div>
+
   <section class="talk" id="talk"></section>
 
   <div class="compose" id="compose">
@@ -160,12 +171,13 @@ footer{padding:40px 0 0; margin-top:40px; border-top:1px solid var(--rule);
     <button class="send" id="send">言う</button>
   </div>
   <p class="listening" id="listening">● 聞いています　もう一度「言い終わり」を押すと送信します</p>
-  <p class="hint" id="hint" style="display:none">Ctrl + Enter でも送れます。切り上げるときは「失礼します」。</p>
+  <p class="hint" id="hint" style="display:none">Ctrl + Enter でも送れます。</p>
   <p class="micerr" id="micerr"></p>
+  <div class="endbar" id="endbar"><button class="endbtn" id="endnow">ここで終わって採点する</button></div>
 
   <section class="score" id="score">
-    <h2>刺さった手</h2>
-    <table id="moves"></table>
+    <h2>契約までの13段階</h2>
+    <table id="flowTable"></table>
     <h2 class="sp">必須説明の確認</h2>
     <table id="checks"></table>
     <p class="verdict" id="verdict"></p>
@@ -176,163 +188,167 @@ footer{padding:40px 0 0; margin-top:40px; border-top:1px solid var(--rule);
 </div>
 
 <script>
-/* ═════ 客の型（セリフはすべて実録音から） ═════ */
-const KINDS = {
-  busy:{ name:"今は忙しい", rate:"実データ127件・成約21.3%",
-    seed:"ドアを細く開け、出かける直前。早く終わらせたい。",
-    open:["全然時間ないですね。","今時間ないです。","ちょっと今忙しいんですけど。",
-          "結構急いでて、この後またすぐ出られる。"],
-    miss:[["なので、ちょっと今は。","ちょっとあんまり時間ないんですけど。"],
-          ["本当に時間ないんです。","今日ちょっと忙しいので。"],
-          ["すみません、ちょっと無理です。"]],
-    close:"すみません、失礼します。" },
-  enough:{ name:"間に合ってる", rate:"実データ101件・成約25.7%",
-    seed:"話の中身を聞く前から断っている。何の話かも分かっていない。",
-    open:["いらないです。","いやー、いらないです。","結構です。","これいらないですよね、多分。"],
-    miss:[["いや、いらないです。","結構ですね。"],
-          ["もういらないです。","間に合ってるので。"],
-          ["結構ですって。"]],
-    close:"いらないです。失礼します。" },
-  doubt:{ name:"怪しい・信用できない", rate:"実データ49件・成約18.4%",
-    seed:"訪問販売そのものを疑っている。身分証や会社名を気にする。",
-    open:["3時だし、怪しい。","普通に怪しいから。","怪しいです。","これね、怪しいんだよね。"],
-    miss:[["それ、怪しい。","怪しいなと思って。"],
-          ["私だけじゃ信用できないだろ。","直感で怪しいなみたいな。"],
-          ["ちょっと無理です。"]],
-    close:"いや、結構です。" }
-};
-
-/* 質問で聞かれたときの短い受け答え（相槌だけで終わらせない） */
-const ASKED = {
-  bill:["紙は来てますけど。","アプリで見てるんで紙はないです。","どっかにあったと思います。","捨てちゃったかも。"],
-  life:["一人です。","一人暮らしですね。","日中はいないですね。","仕事で昼間いないです。","もう3年くらいですかね。"],
-  use :["東京電力ですね。","東京ガスだったかな。","よく分かってないです。","親が払ってるんで。"],
-  any :["どうですかね。","うーん。","どうだろう。"]
-};
-const ASK_RX = {
-  bill:/明細|検針|紙|アプリ|ウェブ/,
-  life:/一人|お一人|単身|何人|在宅|日中|お仕事|何年|引っ越|お住まい/,
-  use :/どこ|どちら|会社|電力|ガス|契約|使って/
-};
-
-/* ═════ 刺さる手（これが関心を上げる） ═════ */
-const MOVES = [
-  { key:"why",   name:"値上がりの理由を具体的に言った",
-    rx:/補助金|燃料|燃調|市場|値上|上がって|上がっちゃ|高くなって|高騰|来月から|10月/,
-    hit:["えっ、そうなんですか。","上がるんですか。","それ聞いてないですけど。",
-         "どのくらい上がるんですか。","補助金って終わったんですか。"],
-    tip:"「10月で補助金が切れて、来月から上がります」。理由がないと、ただの勧誘に聞こえます。" },
-  { key:"bill",  name:"明細・検針票を見ようとした",
-    rx:/明細|検針|紙|ウェブ|アプリ|写真|見せて|見せてもら|確認させて|持ってき|出してもら|いくら払/,
-    hit:["あります。","ちょっと待ってくださいね。","紙は来てると思います。",
-         "アプリでしか見てないんですよね。","見ればいいんですか。"],
-    tip:"手元に紙を出させると、話が「自分ごと」になります。実データでも契約商談はほぼ全部ここを通ります。" },
-  { key:"free",  name:"強制ではない・全体ではないと言った",
-    rx:/強制|任意|無理やり|全体|一斉|建物全部|みんな入れ|入らなくて/,
-    hit:["あ、そうなんですね。","じゃあ入らなくてもいいんですね。","強制じゃないんだ。",
-         "全員やってるのかと思いました。"],
-    tip:"「強制ではないです」「建物全体の話ではないです」。警戒を外す一言で、言わないと押し売りに見えます。" },
-  { key:"life",  name:"相手の暮らしの話をした",
-    rx:/一人|お一人|単身|何人|在宅|日中|お仕事|アンペア|容量|引っ越|学生|お住まい|何年/,
-    hit:["一人です。","一人暮らしですね。","日中はいないですね。",
-         "仕事で昼間いないです。","もう3年くらいですかね。"],
-    tip:"一人暮らしか、日中いるか。相手の生活に紐づけないと一般論のままです。" },
-  { key:"trust", name:"身元・不安に正面から答えた",
-    rx:/身分証|社員証|名刺|会社名|ホームページ|調べ|怪しい|不審|詐欺|確認してもら|電話番号/,
-    hit:["あ、はい。","まあ、そうですよね。","そういうのあるんですね。",
-         "ちゃんとした会社なんですね。"],
-    tip:"「怪しいですよね」と先に認めて身分証を出す。実データでも、ここを受け止めた商談は会話が続いています。" }
+/* 契約になった198商談から出した実際の順序。at = 商談内での出現位置の中央値。 */
+var FLOW = [
+  { key:"open",  name:"名乗って用件を言う", at:"0.00",
+    rx:/ライフライン|エナジーパートナー|ライフサポート|と申しま|回って|伺って|こんにちは|失礼します/,
+    say:["はい。","はい、なんでしょう。","どちら様ですか。"],
+    tip:"社名と用件。ここが無いと相手は誰と話しているか分からないままです。" },
+  { key:"now",   name:"今どこの電気か聞く", at:"0.22",
+    rx:/今どちら|今の契約|どこの電気|電力会社|東京電力|東京ガス|使って(ま|い)|ご利用/,
+    say:["東京電力ですね。","東京ガスだったかな。","よく分かってないです。","親が契約したやつです。"],
+    tip:"相手の現状を先に握る。契約商談では値上がりの話より前に来ています。" },
+  { key:"why",   name:"値上がりの理由を言う", at:"0.27",
+    rx:/補助金|燃料|燃調|市場|値上|上がって|上がっちゃ|高くなって|高騰|来月から/,
+    say:["えっ、そうなんですか。","上がるんですか。","それ聞いてないですけど。","どのくらい上がるんですか。"],
+    tip:"「補助金が切れて来月から上がります」。理由が無いと、ただの勧誘です。" },
+  { key:"life",  name:"暮らしを聞く", at:"0.30",
+    rx:/お一人|一人暮らし|何人|日中|在宅|お仕事|何年|入居|引っ越|学生|住んで/,
+    say:["一人です。","日中はいないですね。","仕事で昼間いないです。","もう3年くらいですね。"],
+    tip:"一人暮らしか、日中いるか。ここを聞かないと試算が一般論になります。" },
+  { key:"fuel",  name:"燃料調整費を説明する", at:"0.32",
+    rx:/燃料調整|燃調|市場連動|変動|調整額|調整費/,
+    say:["へえ。","そういうのがあるんですね。","初めて聞きました。"],
+    tip:"必須項目。契約商談の中でも出現が少なく、ここが一番抜けています。" },
+  { key:"save",  name:"いくら下がるか示す", at:"0.33",
+    rx:/円|いくら|年間|月々|試算|シミュ|割引|安く|下が|浮く/,
+    say:["いいですね。","そんなに違うんですか。","確かに。","結構変わるんですね。"],
+    tip:"金額を出す。ここが無いと相手は判断できません。" },
+  { key:"bill",  name:"明細・検針票を見る", at:"0.36",
+    rx:/明細|検針|紙|アプリ|ウェブ|写真|見せて|持ってき|出してもら/,
+    say:["あります。ちょっと待ってくださいね。","これですね。","アプリでしか見てないです。"],
+    tip:"手元に出させると話が自分ごとになります。契約商談はほぼ全部ここを通ります。" },
+  { key:"free",  name:"強制ではないと言う", at:"0.37",
+    rx:/強制|任意|無理やり|全体|一斉|建物全部|入らなくて/,
+    say:["あ、そうなんですね。","じゃあ安心です。","強制じゃないんだ。"],
+    tip:"必須項目。「強制ではない」「建物全体の話ではない」。言わないと押し売りに見えます。" },
+  { key:"age",   name:"年齢・本人確認", at:"0.40",
+    rx:/生年月日|おいくつ|何歳|年齢|20歳|18歳|身分証|免許|ご本人/,
+    say:["28です。","はい、本人です。","免許でいいですか。"],
+    tip:"必須項目。商材ごとに年齢条件が違うので、ここを飛ばすと後で通りません。" },
+  { key:"apply", name:"申込・手続きに入る", at:"0.42",
+    rx:/申し込み|申込|お手続き|手続き|登録|チェック|サイン|署名|記入|入力/,
+    say:["わかりました。","オッケーです。","ここに書けばいいですか。"],
+    tip:"ここまでの説明が揃っていれば、相手は素直に進みます。" },
+  { key:"cool",  name:"クーリングオフを説明", at:"0.45",
+    rx:/クーリング|クリング|リングオフ|リンオフ|8日|八日/,
+    say:["わかりました。","そうですよね。","安心しました。"],
+    tip:"必須項目。契約商談の半分以下しか触れていません。最大の穴です。" },
+  { key:"desk",  name:"受電専用窓口を案内", at:"0.46",
+    rx:/窓口/,
+    say:["わかりました。","助かります。","控えておきます。"],
+    tip:"必須項目。「切替をキャンセルしたい」の一文まで言い切ること。" },
+  { key:"call",  name:"この後の確認電話を伝える", at:"0.57",
+    rx:/確認.{0,3}お?電話|この後.{0,8}電話|電話(が|も)?来|折り返し/,
+    say:["はい、大丈夫です。","分かりました、出ます。"],
+    tip:"auでんき・エネワンは確認電話で完了。伝えないと相手が出ません。" }
 ];
 
-/* ═════ 必須説明（実商談の監査と同じ判定） ═════ */
-const CHECKS = [
-  ["クーリングオフ", /クーリング|クリング|リングオフ|リンオフ|8日間|八日間|8日以内/],
+var TOOEARLY = ["ちょっとまだよく分かってないんですけど。","え、どういうことですか。",
+                "すみません、話が見えてないです。","ちょっと待ってください、何の話ですか。"];
+var FILLER = ["そうですね。","なるほど。","はい。","確かに。","そうなんですね。","大丈夫です。"];
+
+var KINDS = {
+  smooth:{ name:"素直な人", note:"契約商談で最も多い型。聞けば答え、順番どおりなら進みます。", skip:3 },
+  slow:  { name:"のみこみが遅い人", note:"飛ばすとすぐ止まります。順番を守る練習に。", skip:2 },
+  quick: { name:"せっかちな人", note:"多少飛ばしても進みます。抜け漏れに気づけるか。", skip:5 }
+};
+
+var CHECKS = [
+  ["クーリングオフ", /クーリング|クリング|リングオフ|リンオフ|8日間|八日間|8日以内|8日/],
   ["強制ではないと伝えた", /強制|無理やり|任意/],
   ["建物・地域全体ではない", /建物全体|地域全体|全体じゃ|全体では|一斉/],
   ["燃料調整費", /燃料|燃調|市場連動|市場価格|変動性|変動する料金|調整額|調整費/],
   ["年齢確認", /生年月日|おいくつ|何歳|年齢|20歳|18歳|学生/],
-  ["受電専用窓口の案内", /(相談|問い合わせ|問合せ|お悩み|カスタマー)[^。]{0,8}窓口|窓口[^。]{0,10}(用意|ご用意)/],
-  ["「切替をキャンセル」の一文", /キャンセルしたい|切替をキャンセル/]
+  ["受電専用窓口の案内", /窓口/],
+  ["「切替をキャンセル」の一文", /キャンセルしたい|切替をキャンセル|キャンセル/]
 ];
 
-const $ = id => document.getElementById(id);
-const pick = a => a[Math.floor(Math.random()*a.length)];
-let kind="busy", said=[], interest=0, strikes=0, landed=new Set(), closed=false, t0=0, timer=null, lastReply="";
-let micOn=true, ttsOn=true, rec=null, listening=false, heard="";
-const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+function $(id){ return document.getElementById(id); }
+function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+var kind="smooth", said=[], done={}, dcount=0, closed=false, t0=0, timer=null, lastReply="";
+var micOn=true, ttsOn=true, rec=null, listening=false, heard="";
+var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-/* ═════ 画面 ═════ */
+function nextIdx(){
+  for(var i=0;i<FLOW.length;i++){ if(!done[FLOW[i].key]) return i; }
+  return -1;
+}
+
 function paintKinds(){
   $("kinds").innerHTML="";
-  for(const [k,v] of Object.entries(KINDS)){
-    const b=document.createElement("button");
-    b.className="choice"; b.textContent=v.name;
-    b.setAttribute("aria-pressed",String(k===kind));
-    b.onclick=()=>{kind=k; paintKinds();};
+  Object.keys(KINDS).forEach(function(k){
+    var b=document.createElement("button");
+    b.className="choice"; b.textContent=KINDS[k].name;
+    b.setAttribute("aria-pressed", String(k===kind));
+    b.onclick=function(){ kind=k; paintKinds(); };
     $("kinds").appendChild(b);
-  }
-  $("kindNote").textContent=KINDS[kind].rate+"。"+KINDS[kind].seed;
+  });
+  $("kindNote").textContent=KINDS[kind].note;
 }
-function addTurn(who,text,cls,extra){
-  const d=document.createElement("div"); d.className="turn "+cls;
-  const w=document.createElement("p"); w.className="who"; w.textContent=who;
-  const l=document.createElement("p"); l.className="line"; l.textContent=text;
-  d.append(w,l);
-  if(extra){ const g=document.createElement("p"); g.className="got"; g.textContent=extra; d.appendChild(g); }
-  $("talk").appendChild(d);
-  d.scrollIntoView({block:"end",behavior:"smooth"});
+function paintFlow(){
+  var n=nextIdx();
+  $("steps").innerHTML="";
+  FLOW.forEach(function(s,i){
+    var d=document.createElement("span");
+    d.className="step"+(done[s.key]?" done":(i===n?" now":""));
+    d.title=s.name;
+    $("steps").appendChild(d);
+  });
+  $("flowDone").textContent=dcount+" / "+FLOW.length;
+  $("flowNext").textContent = n<0 ? "すべて完了" : "次は　"+FLOW[n].name;
 }
-function addSys(text,good){
-  const d=document.createElement("div"); d.className="sys"+(good?" good":"");
+function addTurn(who,text,cls,extra,warn){
+  var d=document.createElement("div"); d.className="turn "+cls;
+  var w=document.createElement("p"); w.className="who"; w.textContent=who;
+  var l=document.createElement("p"); l.className="line"; l.textContent=text;
+  d.appendChild(w); d.appendChild(l);
+  if(extra){ var g=document.createElement("p"); g.className="got"+(warn?" warn":"");
+             g.textContent=extra; d.appendChild(g); }
+  $("talk").appendChild(d); d.scrollIntoView({block:"end",behavior:"smooth"});
+}
+function addSys(text,bad){
+  var d=document.createElement("div"); d.className="sys"+(bad?" bad":"");
   d.textContent=text; $("talk").appendChild(d);
   d.scrollIntoView({block:"end",behavior:"smooth"});
 }
-function paintMeter(){
-  $("bars").innerHTML="";
-  for(let i=0;i<5;i++){const b=document.createElement("span");
-    b.className="bar"+(i<interest?" lit":""); $("bars").appendChild(b);}
-  $("strikes").textContent="✕".repeat(strikes);
-}
 function tick(){
-  const s=Math.floor((Date.now()-t0)/1000);
-  $("elapsed").textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
+  var s=Math.floor((Date.now()-t0)/1000);
+  $("elapsed").textContent=String(Math.floor(s/60)).replace(/^(\d)$/,"0$1")+":"+String(s%60).replace(/^(\d)$/,"0$1");
 }
 
-/* ═════ 音声 ═════ */
 function micFail(msg){
   micOn=false; listening=false;
   $("mic").disabled=true; $("mic").setAttribute("aria-pressed","false");
-  $("listening").className="listening";
-  $("useMic").setAttribute("aria-pressed","false");
+  $("listening").className="listening"; $("useMic").setAttribute("aria-pressed","false");
   $("micerr").className="micerr on"; $("micerr").textContent=msg;
 }
 function initRec(){
   if(!SR) return null;
-  const r=new SR(); r.lang="ja-JP"; r.continuous=true; r.interimResults=true;
-  r.onresult=ev=>{
-    let fin="",mid="";
-    for(let i=ev.resultIndex;i<ev.results.length;i++){
-      const t=ev.results[i][0].transcript;
+  var r=new SR(); r.lang="ja-JP"; r.continuous=true; r.interimResults=true;
+  r.onresult=function(ev){
+    var fin="",mid="";
+    for(var i=ev.resultIndex;i<ev.results.length;i++){
+      var t=ev.results[i][0].transcript;
       if(ev.results[i].isFinal) fin+=t; else mid+=t;
     }
     if(fin) heard+=fin;
-    $("input").value=(heard+mid).trim();
+    $("input").value=(heard+mid).replace(/^\s+|\s+$/g,"");
   };
-  r.onerror=ev=>{
+  r.onerror=function(ev){
     if(ev.error==="not-allowed"||ev.error==="service-not-allowed")
       micFail("マイクが許可されていません。アドレスバー左のアイコン → マイクを「許可」にして再読み込みしてください。");
     else if(ev.error!=="no-speech"&&ev.error!=="aborted")
       micFail("音声認識が止まりました（"+ev.error+"）。キーボード入力で続けられます。");
   };
-  r.onend=()=>{ if(listening){ try{r.start();}catch(e){} } };
+  r.onend=function(){ if(listening){ try{r.start();}catch(e){} } };
   return r;
 }
 function startListen(){
   if(!micOn||closed) return;
   if(!rec) rec=initRec();
-  if(!rec) return micFail("このブラウザは音声入力に対応していません。Chrome で開いてください。");
-  heard=""; $("input").value="";
-  listening=true;
+  if(!rec){ micFail("このブラウザは音声入力に対応していません。Chrome で開いてください。"); return; }
+  heard=""; $("input").value=""; listening=true;
   $("mic").setAttribute("aria-pressed","true"); $("mic").textContent="言い終わり";
   $("listening").className="listening on";
   try{rec.start();}catch(e){}
@@ -342,169 +358,156 @@ function stopListen(andSend){
   $("mic").setAttribute("aria-pressed","false"); $("mic").textContent="話す";
   $("listening").className="listening";
   if(rec){ try{rec.stop();}catch(e){} }
-  if(andSend && $("input").value.trim()) setTimeout(send,200);
+  if(andSend && $("input").value.replace(/\s/g,"")) setTimeout(send,200);
 }
 function speak(text,then){
   if(!ttsOn||!window.speechSynthesis){ if(then) then(); return; }
   try{
     window.speechSynthesis.cancel();
-    const u=new SpeechSynthesisUtterance(text);
+    var u=new SpeechSynthesisUtterance(text);
     u.lang="ja-JP"; u.rate=1.08;
-    const v=(window.speechSynthesis.getVoices()||[]).find(x=>/ja[-_]JP/i.test(x.lang));
-    if(v) u.voice=v;
-    u.onend=()=>{ if(then) then(); };
-    u.onerror=()=>{ if(then) then(); };
+    var vs=window.speechSynthesis.getVoices()||[];
+    for(var i=0;i<vs.length;i++){ if(/ja[-_]JP/i.test(vs[i].lang)){ u.voice=vs[i]; break; } }
+    u.onend=function(){ if(then) then(); }; u.onerror=function(){ if(then) then(); };
     window.speechSynthesis.speak(u);
   }catch(e){ if(then) then(); }
 }
 
-$("micTest").onclick = async () => {
-  $("micerr").className="micerr";
-  $("voiceNote").textContent="確認しています…";
-  try{
-    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) throw new Error("NoMediaDevices");
-    const s=await navigator.mediaDevices.getUserMedia({audio:true});
-    s.getTracks().forEach(t=>t.stop());
-    $("voiceNote").textContent="マイクは使えます"+(SR?"。音声認識も利用できます。":"（ただし音声認識は非対応のブラウザです）。");
-  }catch(e){
-    micFail("マイクを使えませんでした（"+(e.name||e.message)+"）。アドレスバー左のアイコン → マイクを「許可」に。");
+$("micTest").onclick = function(){
+  $("micerr").className="micerr"; $("voiceNote").textContent="確認しています…";
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+    micFail("このブラウザではマイクを使えません。Chrome で開いてください。"); return;
   }
+  navigator.mediaDevices.getUserMedia({audio:true}).then(function(s){
+    s.getTracks().forEach(function(t){t.stop();});
+    $("voiceNote").textContent="マイクは使えます"+(SR?"。音声認識も利用できます。":"（音声認識は非対応のブラウザです）。");
+  }).catch(function(e){
+    micFail("マイクを使えませんでした（"+(e.name||e.message)+"）。アドレスバー左のアイコン → マイクを「許可」に。");
+  });
 };
 
-/* ═════ 進行 ═════ */
-$("go").onclick = () => {
+$("go").onclick = function(){
   $("setup").className="setup hide";
   $("scene").className="scene on";
-  $("scene").innerHTML="<b>"+KINDS[kind].name+"</b>　横浜市内の単身向けマンション、平日夕方。扉が細く開いた。";
+  $("scene").innerHTML="<b>"+KINDS[kind].name+"</b>　横浜市内の単身向けマンション、平日夕方。扉が開いた。"+
+    "　<span style='color:var(--ink-3)'>このお客様は、運び方さえ間違えなければ契約まで行きます。</span>";
   $("talk").className="talk on"; $("talk").innerHTML="";
-  $("compose").className="compose on";
-  $("hint").style.display="block";
-  $("meter").className="meter on";
-  said=[]; interest=0; strikes=0; landed=new Set(); closed=false; lastReply="";
-  paintMeter(); t0=Date.now(); tick(); timer=setInterval(tick,1000);
-  const first=pick(KINDS[kind].open);
+  $("compose").className="compose on"; $("hint").style.display="block";
+  $("flow").className="flow on"; $("endbar").className="endbar on";
+  said=[]; done={}; dcount=0; closed=false; lastReply="";
+  paintFlow(); t0=Date.now(); tick(); timer=setInterval(tick,1000);
+  var first="はい、どちら様ですか。";
   addTurn("客",first,"cust");
-  speak(first, ()=>{ if(micOn) startListen(); });
+  speak(first, function(){ if(micOn) startListen(); });
   $("input").focus();
 };
 
 function send(){
-  const text=$("input").value.trim();
+  var text=$("input").value.replace(/^\s+|\s+$/g,"");
   if(!text||closed) return;
   $("input").value=""; heard="";
-
-  // 刺さった手を判定（1つの手は1回だけ効く）
-  const fresh=[], freshMoves=[];
-  for(const m of MOVES){
-    if(!landed.has(m.key) && m.rx.test(text)){ landed.add(m.key); fresh.push(m.name); freshMoves.push(m); }
-  }
-  addTurn("あなた",text,"rep", fresh.length ? "刺さった：" + fresh.join(" / ") : "");
   said.push(text);
 
-  if(/失礼し|ありがとうございま(す|した)/.test(text) && said.length>1) return finish("self");
+  var hit=[];
+  FLOW.forEach(function(s){ if(!done[s.key] && s.rx.test(text)) hit.push(s); });
 
-  let reply;
-  if(fresh.length){
-    strikes=0;
-    interest=Math.min(5,interest+fresh.length);
-    // 直前に刺さった手そのものに対して返す（相槌で濁さない）
-    reply=pick(freshMoves[freshMoves.length-1].hit);
+  var n=nextIdx();
+  var tooEarly = hit.length>0 && n>=0 && (FLOW.indexOf(hit[0]) - n) > KINDS[kind].skip;
+
+  var reply, note="", warn=false;
+  if(tooEarly){
+    reply=pick(TOOEARLY);
+    note="順番が早い：先に「"+FLOW[n].name+"」"; warn=true;
+  }else if(hit.length){
+    var names=[];
+    hit.forEach(function(s){ done[s.key]=true; dcount++; names.push(s.name); });
+    note="進んだ："+names.join(" / ");
+    reply=pick(hit[hit.length-1].say);
   }else{
-    strikes++;
-    if(strikes>=3){
-      paintMeter();
-      const bye=KINDS[kind].close;
-      addTurn("客",bye,"cust");
-      speak(bye);
-      return finish("closed");
-    }
-    // 質問されたら、一応答えてから断る
-    let ans="";
-    if(/[？?]|ですか|ますか|でしょうか/.test(text)){
-      for(const k of ["bill","life","use"]){
-        if(ASK_RX[k].test(text)){ ans=pick(ASKED[k]); break; }
-      }
-      if(!ans) ans=pick(ASKED.any);
-    }
-    reply=(ans? ans+"" : "") + pick(KINDS[kind].miss[strikes-1]);
+    reply=pick(FILLER);
   }
-  if(reply===lastReply) reply=pick(KINDS[kind].miss[Math.min(strikes,2)]||[reply]);
+  if(reply===lastReply) reply=pick(FILLER);
   lastReply=reply;
-  paintMeter();
+
+  addTurn("あなた",text,"rep",note,warn);
+  paintFlow();
   addTurn("客",reply,"cust");
 
-  if(interest>=5){ speak(reply); return finish("open"); }
-  speak(reply, ()=>{ if(micOn&&!closed) startListen(); });
+  if(dcount===FLOW.length){ speak(reply, function(){ finish(true); }); return; }
+  speak(reply, function(){ if(micOn&&!closed) startListen(); });
 }
 
-$("send").onclick=()=>{ stopListen(false); send(); };
-$("mic").onclick=()=>{ listening?stopListen(true):startListen(); };
-$("input").addEventListener("keydown",e=>{
-  if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)){e.preventDefault(); stopListen(false); send();}
+$("send").onclick=function(){ stopListen(false); send(); };
+$("mic").onclick=function(){ if(listening) stopListen(true); else startListen(); };
+$("endnow").onclick=function(){ if(!closed) finish(false); };
+$("input").addEventListener("keydown",function(e){
+  if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)){ e.preventDefault(); stopListen(false); send(); }
 });
-$("useMic").onclick=()=>{ micOn=!micOn; $("useMic").setAttribute("aria-pressed",String(micOn));
+$("useMic").onclick=function(){ micOn=!micOn; $("useMic").setAttribute("aria-pressed",String(micOn));
   if(!micOn) stopListen(false); };
-$("useTts").onclick=()=>{ ttsOn=!ttsOn; $("useTts").setAttribute("aria-pressed",String(ttsOn));
+$("useTts").onclick=function(){ ttsOn=!ttsOn; $("useTts").setAttribute("aria-pressed",String(ttsOn));
   if(!ttsOn&&window.speechSynthesis) window.speechSynthesis.cancel(); };
 
-/* ═════ 採点 ═════ */
-function finish(how){
+function finish(ok){
   closed=true; clearInterval(timer); stopListen(false);
   $("compose").className="compose"; $("hint").style.display="none";
-  addSys(how==="open" ? "— 検針票を取りに行きました —"
-       : how==="self" ? "— 商談を切り上げました —"
-       : "— 扉が閉まりました —", how==="open");
+  $("endbar").className="endbar";
+  addSys(ok ? "— 契約成立 —" : "— ここで終了 —", !ok);
 
-  const mine=said.join("\n");
-
-  const mt=$("moves"); mt.innerHTML="";
-  for(const m of MOVES){
-    const ok=landed.has(m.key);
-    const tr=document.createElement("tr");
-    const th=document.createElement("th"); th.textContent=m.name;
-    const td=document.createElement("td"); td.className="mark "+(ok?"yes":"no");
-    td.textContent=ok?"○":"✕";
-    tr.append(th,td); mt.appendChild(tr);
-    if(!ok){
-      const tr2=document.createElement("tr");
-      const td2=document.createElement("td"); td2.colSpan=2;
-      td2.style.border="none"; td2.style.padding="0 0 11px";
-      const p=document.createElement("p"); p.className="tip"; p.textContent=m.tip;
-      td2.appendChild(p); tr2.appendChild(td2); mt.appendChild(tr2);
+  var mine=said.join("\n");
+  var ft=$("flowTable"); ft.innerHTML="";
+  FLOW.forEach(function(s,i){
+    var d=!!done[s.key];
+    var tr=document.createElement("tr");
+    var th=document.createElement("th");
+    var no=document.createElement("span"); no.className="no";
+    no.textContent=(i+1<10?"0":"")+(i+1);
+    th.appendChild(no); th.appendChild(document.createTextNode(s.name));
+    var td=document.createElement("td"); td.className="mark "+(d?"yes":"no");
+    td.textContent=d?"○":"✕";
+    tr.appendChild(th); tr.appendChild(td); ft.appendChild(tr);
+    if(!d){
+      var tr2=document.createElement("tr"); var td2=document.createElement("td");
+      td2.colSpan=2; td2.style.border="none"; td2.style.padding="0 0 11px";
+      var p=document.createElement("p"); p.className="tip"; p.textContent=s.tip;
+      td2.appendChild(p); tr2.appendChild(td2); ft.appendChild(tr2);
     }
+  });
+
+  var ct=$("checks"); ct.innerHTML=""; var c=0;
+  CHECKS.forEach(function(pair){
+    var o=pair[1].test(mine); if(o) c++;
+    var tr=document.createElement("tr");
+    var th=document.createElement("th"); th.textContent=pair[0];
+    var td=document.createElement("td"); td.className="mark "+(o?"yes":"no");
+    td.textContent=o?"○":"✕";
+    tr.appendChild(th); tr.appendChild(td); ct.appendChild(tr);
+  });
+
+  var secs=Math.floor((Date.now()-t0)/1000);
+  var v="所要 "+Math.floor(secs/60)+"分"+(secs%60)+"秒／段階 "+dcount+"/13／必須説明 "+c+"/7。";
+  if(ok){
+    v += (secs<600)
+      ? "契約まで行きました。ただし実データの契約商談は中央値28.5分です。これより大幅に速いときは説明を飛ばしている可能性があります。"
+      : "契約まで行きました。実データの契約商談の中央値は28.5分なので、時間の使い方も実際に近い形です。";
+    if(c<7) v += "　必須説明に抜けがあります。契約は取れても、後から苦情になるのはここです。";
+  }else{
+    v += "✕の段階を上から順に埋めるのが、契約商談の実際の運び方です。";
   }
-
-  const ct=$("checks"); ct.innerHTML=""; let done=0;
-  for(const [name,rx] of CHECKS){
-    const ok=rx.test(mine); if(ok) done++;
-    const tr=document.createElement("tr");
-    const th=document.createElement("th"); th.textContent=name;
-    const td=document.createElement("td"); td.className="mark "+(ok?"yes":"no");
-    td.textContent=ok?"○":"✕";
-    tr.append(th,td); ct.appendChild(tr);
-  }
-
-  const secs=Math.floor((Date.now()-t0)/1000);
-  const mm=Math.floor(secs/60), ss=secs%60;
-  let v="";
-  if(how==="open") v="検針票を取りに行かせました。実データでは、ここまで来た商談の中央値は28.5分です。ここからが本番で、必須説明の抜けがそのまま後の苦情になります。";
-  else if(how==="closed") v="3回続けて刺さらずに扉が閉まりました。実データでも非契約の中央値は9.8分で、多くがこの形です。上の✕のうち1つでも打てていれば、会話は続いていました。";
-  else v="自分から切り上げました。引くのも手ですが、上の✕を見てください。打てる手が残っていたかどうかが分かれ目です。";
-  $("verdict").textContent =
-    "所要 "+mm+"分"+ss+"秒／関心 "+interest+"/5／刺さった手 "+landed.size+"/5／必須説明 "+done+"/7。"+v;
-
+  $("verdict").textContent=v;
   $("score").className="score on";
+  $("score").scrollIntoView({block:"start",behavior:"smooth"});
 }
 
-$("again").onclick=()=>{
+$("again").onclick=function(){
   if(window.speechSynthesis) window.speechSynthesis.cancel();
   $("talk").innerHTML=""; $("talk").className="talk";
   $("score").className="score"; $("scene").className="scene";
-  $("meter").className="meter"; $("setup").className="setup";
+  $("flow").className="flow"; $("setup").className="setup";
+  $("endbar").className="endbar";
   closed=false;
 };
 
-/* ═════ 起動 ═════ */
 paintKinds();
 if(!SR){
   micOn=false;
