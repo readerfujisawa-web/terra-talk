@@ -202,31 +202,45 @@ const KINDS = {
     close:"いや、結構です。" }
 };
 
-/* 関心が上がったときに客が返す言葉（成約商談から抽出） */
-const WARM = [
-  ["そうなんですか。","どういうことですか。"],            // 関心1
-  ["なるほど。","そうなんですね。"],                      // 関心2
-  ["そうなんですよね。","あーそうなんですか。"],          // 関心3
-  ["ちょっと待ってくださいね。","あります。"],            // 関心4
-  ["ちょっと待ってください。今持ってきます。"]            // 関心5
-];
+/* 質問で聞かれたときの短い受け答え（相槌だけで終わらせない） */
+const ASKED = {
+  bill:["紙は来てますけど。","アプリで見てるんで紙はないです。","どっかにあったと思います。","捨てちゃったかも。"],
+  life:["一人です。","一人暮らしですね。","日中はいないですね。","仕事で昼間いないです。","もう3年くらいですかね。"],
+  use :["東京電力ですね。","東京ガスだったかな。","よく分かってないです。","親が払ってるんで。"],
+  any :["どうですかね。","うーん。","どうだろう。"]
+};
+const ASK_RX = {
+  bill:/明細|検針|紙|アプリ|ウェブ/,
+  life:/一人|お一人|単身|何人|在宅|日中|お仕事|何年|引っ越|お住まい/,
+  use :/どこ|どちら|会社|電力|ガス|契約|使って/
+};
 
 /* ═════ 刺さる手（これが関心を上げる） ═════ */
 const MOVES = [
   { key:"why",   name:"値上がりの理由を具体的に言った",
-    rx:/補助金|燃料|燃調|市場|値上|上がって|上がっちゃ|高くなって|高騰|来月から/,
+    rx:/補助金|燃料|燃調|市場|値上|上がって|上がっちゃ|高くなって|高騰|来月から|10月/,
+    hit:["えっ、そうなんですか。","上がるんですか。","それ聞いてないですけど。",
+         "どのくらい上がるんですか。","補助金って終わったんですか。"],
     tip:"「10月で補助金が切れて、来月から上がります」。理由がないと、ただの勧誘に聞こえます。" },
   { key:"bill",  name:"明細・検針票を見ようとした",
-    rx:/明細|検針|紙|ウェブ|アプリ|写真|見せて|見せてもら|確認させて|持ってき|出してもら/,
+    rx:/明細|検針|紙|ウェブ|アプリ|写真|見せて|見せてもら|確認させて|持ってき|出してもら|いくら払/,
+    hit:["あります。","ちょっと待ってくださいね。","紙は来てると思います。",
+         "アプリでしか見てないんですよね。","見ればいいんですか。"],
     tip:"手元に紙を出させると、話が「自分ごと」になります。実データでも契約商談はほぼ全部ここを通ります。" },
   { key:"free",  name:"強制ではない・全体ではないと言った",
-    rx:/強制|任意|無理やり|全体|一斉|建物全部|みんな入れ/,
+    rx:/強制|任意|無理やり|全体|一斉|建物全部|みんな入れ|入らなくて/,
+    hit:["あ、そうなんですね。","じゃあ入らなくてもいいんですね。","強制じゃないんだ。",
+         "全員やってるのかと思いました。"],
     tip:"「強制ではないです」「建物全体の話ではないです」。警戒を外す一言で、言わないと押し売りに見えます。" },
   { key:"life",  name:"相手の暮らしの話をした",
     rx:/一人|お一人|単身|何人|在宅|日中|お仕事|アンペア|容量|引っ越|学生|お住まい|何年/,
+    hit:["一人です。","一人暮らしですね。","日中はいないですね。",
+         "仕事で昼間いないです。","もう3年くらいですかね。"],
     tip:"一人暮らしか、日中いるか。相手の生活に紐づけないと一般論のままです。" },
   { key:"trust", name:"身元・不安に正面から答えた",
     rx:/身分証|社員証|名刺|会社名|ホームページ|調べ|怪しい|不審|詐欺|確認してもら|電話番号/,
+    hit:["あ、はい。","まあ、そうですよね。","そういうのあるんですね。",
+         "ちゃんとした会社なんですね。"],
     tip:"「怪しいですよね」と先に認めて身分証を出す。実データでも、ここを受け止めた商談は会話が続いています。" }
 ];
 
@@ -243,7 +257,7 @@ const CHECKS = [
 
 const $ = id => document.getElementById(id);
 const pick = a => a[Math.floor(Math.random()*a.length)];
-let kind="busy", said=[], interest=0, strikes=0, landed=new Set(), closed=false, t0=0, timer=null;
+let kind="busy", said=[], interest=0, strikes=0, landed=new Set(), closed=false, t0=0, timer=null, lastReply="";
 let micOn=true, ttsOn=true, rec=null, listening=false, heard="";
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -366,7 +380,7 @@ $("go").onclick = () => {
   $("compose").className="compose on";
   $("hint").style.display="block";
   $("meter").className="meter on";
-  said=[]; interest=0; strikes=0; landed=new Set(); closed=false;
+  said=[]; interest=0; strikes=0; landed=new Set(); closed=false; lastReply="";
   paintMeter(); t0=Date.now(); tick(); timer=setInterval(tick,1000);
   const first=pick(KINDS[kind].open);
   addTurn("客",first,"cust");
@@ -380,9 +394,9 @@ function send(){
   $("input").value=""; heard="";
 
   // 刺さった手を判定（1つの手は1回だけ効く）
-  const fresh=[];
+  const fresh=[], freshMoves=[];
   for(const m of MOVES){
-    if(!landed.has(m.key) && m.rx.test(text)){ landed.add(m.key); fresh.push(m.name); }
+    if(!landed.has(m.key) && m.rx.test(text)){ landed.add(m.key); fresh.push(m.name); freshMoves.push(m); }
   }
   addTurn("あなた",text,"rep", fresh.length ? "刺さった：" + fresh.join(" / ") : "");
   said.push(text);
@@ -393,7 +407,8 @@ function send(){
   if(fresh.length){
     strikes=0;
     interest=Math.min(5,interest+fresh.length);
-    reply=pick(WARM[interest-1]);
+    // 直前に刺さった手そのものに対して返す（相槌で濁さない）
+    reply=pick(freshMoves[freshMoves.length-1].hit);
   }else{
     strikes++;
     if(strikes>=3){
@@ -403,8 +418,18 @@ function send(){
       speak(bye);
       return finish("closed");
     }
-    reply=pick(KINDS[kind].miss[strikes-1]);
+    // 質問されたら、一応答えてから断る
+    let ans="";
+    if(/[？?]|ですか|ますか|でしょうか/.test(text)){
+      for(const k of ["bill","life","use"]){
+        if(ASK_RX[k].test(text)){ ans=pick(ASKED[k]); break; }
+      }
+      if(!ans) ans=pick(ASKED.any);
+    }
+    reply=(ans? ans+"" : "") + pick(KINDS[kind].miss[strikes-1]);
   }
+  if(reply===lastReply) reply=pick(KINDS[kind].miss[Math.min(strikes,2)]||[reply]);
+  lastReply=reply;
   paintMeter();
   addTurn("客",reply,"cust");
 
