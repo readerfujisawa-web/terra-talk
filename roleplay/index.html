@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>玄関先ロープレ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;600&family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+:root{
+  --ground:#F2F1EC; --panel:#FAF9F6; --ink:#22201C; --ink-2:#56514A; --ink-3:#8A857C;
+  --rule:#D7D3C9; --rule-strong:#B6B0A3; --accent:#2B4257; --reject:#9B3D33; --ok:#4E6B4A;
+  --mincho:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif;
+  --gothic:"Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#15181C; --panel:#1C2027; --ink:#E8E5DE; --ink-2:#ADA79D; --ink-3:#7C766C;
+    --rule:#2D333C; --rule-strong:#414954; --accent:#7FA3BC; --reject:#C9736A; --ok:#8AA97F;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--ground); color:var(--ink); font-family:var(--gothic);
+  font-size:15px; line-height:1.85; -webkit-font-smoothing:antialiased}
+.wrap{max-width:720px; margin:0 auto; padding:0 24px 96px}
+header{padding:56px 0 28px; border-bottom:1px solid var(--rule-strong)}
+h1{font-family:var(--mincho); font-weight:600; font-size:30px; letter-spacing:.18em;
+  margin:0 0 10px; text-wrap:balance}
+.sub{color:var(--ink-3); font-size:12.5px; letter-spacing:.09em; margin:0}
+.field{display:grid; gap:9px}
+.label{font-size:11px; letter-spacing:.2em; color:var(--ink-3); font-weight:500}
+.choices{display:flex; flex-wrap:wrap; gap:8px}
+.choice{font-family:var(--gothic); font-size:13px; color:var(--ink-2); background:transparent;
+  border:1px solid var(--rule-strong); padding:8px 15px; cursor:pointer; line-height:1.4;
+  transition:border-color .15s,color .15s,background .15s}
+.choice:hover{border-color:var(--accent); color:var(--ink)}
+.choice[aria-pressed="true"]{border-color:var(--accent); color:var(--ground);
+  background:var(--accent); font-weight:500}
+.choice:disabled{opacity:.45; cursor:default}
+.choice:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+.note{font-size:12.5px; color:var(--ink-3); margin:0}
+.setup{padding:26px 0; border-bottom:1px solid var(--rule); display:grid; gap:20px}
+.setup.hide{display:none}
+textarea{font-family:var(--gothic); font-size:14.5px; line-height:1.7; color:var(--ink);
+  background:var(--panel); border:1px solid var(--rule-strong); padding:11px 13px;
+  resize:vertical; min-height:72px; width:100%}
+textarea:focus{outline:none; border-color:var(--accent)}
+.scene{padding:22px 0 20px; border-bottom:1px solid var(--rule); font-size:13.5px;
+  color:var(--ink-2); display:none}
+.scene.on{display:block}
+.scene b{color:var(--ink); font-weight:500}
+.meter{position:sticky; top:0; z-index:5; background:var(--ground); padding:13px 0 12px;
+  border-bottom:1px solid var(--rule); display:none; align-items:baseline; gap:14px;
+  font-size:11.5px; letter-spacing:.14em; color:var(--ink-3)}
+.meter.on{display:flex}
+.bars{display:flex; gap:4px}
+.bar{width:22px; height:3px; background:var(--rule-strong)}
+.bar.lit{background:var(--accent)}
+.strikes{color:var(--reject); letter-spacing:.3em}
+.elapsed{margin-left:auto; font-variant-numeric:tabular-nums}
+.talk{padding:8px 0 0; display:none}
+.talk.on{display:block}
+.turn{padding:20px 0; border-bottom:1px solid var(--rule)}
+.who{font-size:10.5px; letter-spacing:.22em; color:var(--ink-3); margin:0 0 7px; font-weight:500}
+.line{margin:0; white-space:pre-wrap}
+.cust .line{font-family:var(--mincho); font-size:19px; line-height:1.78; letter-spacing:.02em}
+.cust .who{color:var(--accent)}
+.rep{padding-left:22px; border-left:2px solid var(--rule-strong); margin-left:2px}
+.rep .line{font-size:14.5px; color:var(--ink-2)}
+.got{font-size:11.5px; color:var(--ok); margin:8px 0 0; letter-spacing:.06em}
+.sys{font-family:var(--mincho); font-size:15px; color:var(--reject); padding:26px 0;
+  border-bottom:1px solid var(--rule); letter-spacing:.08em}
+.sys.good{color:var(--ok)}
+.compose{padding:22px 0 0; display:none; gap:10px; align-items:flex-end}
+.compose.on{display:flex}
+button.send{font-family:var(--mincho); font-size:15px; letter-spacing:.14em; color:var(--ground);
+  background:var(--accent); border:none; padding:13px 22px; cursor:pointer; white-space:nowrap}
+button.send:disabled{background:var(--rule-strong); cursor:default}
+button.mic{font-family:var(--mincho); font-size:15px; letter-spacing:.14em; color:var(--accent);
+  background:transparent; border:1px solid var(--accent); padding:13px 20px; cursor:pointer;
+  white-space:nowrap}
+button.mic[aria-pressed="true"]{color:var(--ground); background:var(--reject); border-color:var(--reject)}
+button.mic:disabled{color:var(--ink-3); border-color:var(--rule-strong); cursor:default}
+button.send:focus-visible,button.mic:focus-visible{outline:2px solid var(--ink); outline-offset:2px}
+.listening{display:none; font-size:11.5px; letter-spacing:.14em; color:var(--reject); margin:9px 0 0}
+.listening.on{display:block}
+.hint{font-size:11.5px; color:var(--ink-3); margin:9px 0 0}
+.micerr{display:none; font-size:12.5px; color:var(--reject); margin:10px 0 0;
+  padding:12px 0 0; border-top:1px solid var(--rule)}
+.micerr.on{display:block}
+.score{padding:30px 0 0; display:none}
+.score.on{display:block}
+h2{font-family:var(--mincho); font-weight:600; font-size:19px; letter-spacing:.14em;
+  margin:0 0 4px; padding-bottom:12px; border-bottom:1px solid var(--rule-strong);
+  scroll-margin-top:60px}
+.score{scroll-margin-top:60px}
+h2.sp{margin-top:34px}
+table{width:100%; border-collapse:collapse; margin:0 0 10px; font-size:14px}
+th,td{text-align:left; padding:11px 0; border-bottom:1px solid var(--rule); vertical-align:top}
+th{font-weight:500; color:var(--ink-2)}
+td.mark{text-align:right; font-family:var(--mincho); font-size:17px; width:3.5em}
+td.mark.yes{color:var(--ok)}
+td.mark.no{color:var(--reject)}
+.tip{font-size:12.5px; color:var(--ink-3); padding:0 0 11px; border-bottom:1px solid var(--rule); margin:0}
+.verdict{font-size:14.5px; color:var(--ink-2); margin:18px 0 26px}
+.again{font-family:var(--mincho); font-size:14px; letter-spacing:.14em; color:var(--accent);
+  background:transparent; border:1px solid var(--accent); padding:11px 24px; cursor:pointer}
+footer{padding:40px 0 0; margin-top:40px; border-top:1px solid var(--rule);
+  font-size:11.5px; color:var(--ink-3)}
+@media (max-width:560px){
+  .wrap{padding:0 18px 72px} h1{font-size:24px} .cust .line{font-size:17px}
+  .compose{flex-direction:column; align-items:stretch}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>玄関先ロープレ</h1>
+    <p class="sub">実録音1,708商談から起こした客・電気（単身／集合住宅）</p>
+  </header>
+
+  <section class="setup" id="setup">
+    <div class="field">
+      <p class="label">出てくる客の型</p>
+      <div class="choices" id="kinds"></div>
+      <p class="note" id="kindNote"></p>
+    </div>
+    <div class="field">
+      <p class="label">声を使う</p>
+      <div class="choices">
+        <button class="choice" id="useMic" aria-pressed="true">マイクで話す</button>
+        <button class="choice" id="useTts" aria-pressed="true">客の声を読み上げる</button>
+        <button class="choice" id="micTest">マイクの確認</button>
+      </div>
+      <p class="note" id="voiceNote">まず「マイクの確認」を押してください。許可を聞かれたら「許可」を選びます。</p>
+    </div>
+    <div class="field">
+      <p class="label">はじめ方</p>
+      <div class="choices"><button class="choice" id="go">インターホンを押す</button></div>
+      <p class="note">刺されば関心が1つ上がります。3回続けて外すと扉が閉まります。</p>
+    </div>
+  </section>
+
+  <div class="scene" id="scene"></div>
+  <div class="meter" id="meter">
+    <span>関心</span><span class="bars" id="bars"></span>
+    <span class="strikes" id="strikes"></span>
+    <span class="elapsed" id="elapsed"></span>
+  </div>
+  <section class="talk" id="talk"></section>
+
+  <div class="compose" id="compose">
+    <textarea id="input" placeholder="玄関で実際に言う言葉をそのまま" aria-label="あなたの発話"></textarea>
+    <button class="mic" id="mic">話す</button>
+    <button class="send" id="send">言う</button>
+  </div>
+  <p class="listening" id="listening">● 聞いています　もう一度「言い終わり」を押すと送信します</p>
+  <p class="hint" id="hint" style="display:none">Ctrl + Enter でも送れます。切り上げるときは「失礼します」。</p>
+  <p class="micerr" id="micerr"></p>
+
+  <section class="score" id="score">
+    <h2>刺さった手</h2>
+    <table id="moves"></table>
+    <h2 class="sp">必須説明の確認</h2>
+    <table id="checks"></table>
+    <p class="verdict" id="verdict"></p>
+    <button class="again" id="again">もう一度</button>
+  </section>
+
+  <footer>株式会社TERRA 社内用。実録音から起こした素材を含みます。</footer>
+</div>
+
+<script>
+/* ═════ 客の型（セリフはすべて実録音から） ═════ */
+const KINDS = {
+  busy:{ name:"今は忙しい", rate:"実データ127件・成約21.3%",
+    seed:"ドアを細く開け、出かける直前。早く終わらせたい。",
+    open:["全然時間ないですね。","今時間ないです。","ちょっと今忙しいんですけど。",
+          "結構急いでて、この後またすぐ出られる。"],
+    miss:[["なので、ちょっと今は。","ちょっとあんまり時間ないんですけど。"],
+          ["本当に時間ないんです。","今日ちょっと忙しいので。"],
+          ["すみません、ちょっと無理です。"]],
+    close:"すみません、失礼します。" },
+  enough:{ name:"間に合ってる", rate:"実データ101件・成約25.7%",
+    seed:"話の中身を聞く前から断っている。何の話かも分かっていない。",
+    open:["いらないです。","いやー、いらないです。","結構です。","これいらないですよね、多分。"],
+    miss:[["いや、いらないです。","結構ですね。"],
+          ["もういらないです。","間に合ってるので。"],
+          ["結構ですって。"]],
+    close:"いらないです。失礼します。" },
+  doubt:{ name:"怪しい・信用できない", rate:"実データ49件・成約18.4%",
+    seed:"訪問販売そのものを疑っている。身分証や会社名を気にする。",
+    open:["3時だし、怪しい。","普通に怪しいから。","怪しいです。","これね、怪しいんだよね。"],
+    miss:[["それ、怪しい。","怪しいなと思って。"],
+          ["私だけじゃ信用できないだろ。","直感で怪しいなみたいな。"],
+          ["ちょっと無理です。"]],
+    close:"いや、結構です。" }
+};
+
+/* 関心が上がったときに客が返す言葉（成約商談から抽出） */
+const WARM = [
+  ["そうなんですか。","どういうことですか。"],            // 関心1
+  ["なるほど。","そうなんですね。"],                      // 関心2
+  ["そうなんですよね。","あーそうなんですか。"],          // 関心3
+  ["ちょっと待ってくださいね。","あります。"],            // 関心4
+  ["ちょっと待ってください。今持ってきます。"]            // 関心5
+];
+
+/* ═════ 刺さる手（これが関心を上げる） ═════ */
+const MOVES = [
+  { key:"why",   name:"値上がりの理由を具体的に言った",
+    rx:/補助金|燃料|燃調|市場|値上|上がって|上がっちゃ|高くなって|高騰|来月から/,
+    tip:"「10月で補助金が切れて、来月から上がります」。理由がないと、ただの勧誘に聞こえます。" },
+  { key:"bill",  name:"明細・検針票を見ようとした",
+    rx:/明細|検針|紙|ウェブ|アプリ|写真|見せて|見せてもら|確認させて|持ってき|出してもら/,
+    tip:"手元に紙を出させると、話が「自分ごと」になります。実データでも契約商談はほぼ全部ここを通ります。" },
+  { key:"free",  name:"強制ではない・全体ではないと言った",
+    rx:/強制|任意|無理やり|全体|一斉|建物全部|みんな入れ/,
+    tip:"「強制ではないです」「建物全体の話ではないです」。警戒を外す一言で、言わないと押し売りに見えます。" },
+  { key:"life",  name:"相手の暮らしの話をした",
+    rx:/一人|お一人|単身|何人|在宅|日中|お仕事|アンペア|容量|引っ越|学生|お住まい|何年/,
+    tip:"一人暮らしか、日中いるか。相手の生活に紐づけないと一般論のままです。" },
+  { key:"trust", name:"身元・不安に正面から答えた",
+    rx:/身分証|社員証|名刺|会社名|ホームページ|調べ|怪しい|不審|詐欺|確認してもら|電話番号/,
+    tip:"「怪しいですよね」と先に認めて身分証を出す。実データでも、ここを受け止めた商談は会話が続いています。" }
+];
+
+/* ═════ 必須説明（実商談の監査と同じ判定） ═════ */
+const CHECKS = [
+  ["クーリングオフ", /クーリング|クリング|リングオフ|リンオフ|8日間|八日間|8日以内/],
+  ["強制ではないと伝えた", /強制|無理やり|任意/],
+  ["建物・地域全体ではない", /建物全体|地域全体|全体じゃ|全体では|一斉/],
+  ["燃料調整費", /燃料|燃調|市場連動|市場価格|変動性|変動する料金|調整額|調整費/],
+  ["年齢確認", /生年月日|おいくつ|何歳|年齢|20歳|18歳|学生/],
+  ["受電専用窓口の案内", /(相談|問い合わせ|問合せ|お悩み|カスタマー)[^。]{0,8}窓口|窓口[^。]{0,10}(用意|ご用意)/],
+  ["「切替をキャンセル」の一文", /キャンセルしたい|切替をキャンセル/]
+];
+
+const $ = id => document.getElementById(id);
+const pick = a => a[Math.floor(Math.random()*a.length)];
+let kind="busy", said=[], interest=0, strikes=0, landed=new Set(), closed=false, t0=0, timer=null;
+let micOn=true, ttsOn=true, rec=null, listening=false, heard="";
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+/* ═════ 画面 ═════ */
+function paintKinds(){
+  $("kinds").innerHTML="";
+  for(const [k,v] of Object.entries(KINDS)){
+    const b=document.createElement("button");
+    b.className="choice"; b.textContent=v.name;
+    b.setAttribute("aria-pressed",String(k===kind));
+    b.onclick=()=>{kind=k; paintKinds();};
+    $("kinds").appendChild(b);
+  }
+  $("kindNote").textContent=KINDS[kind].rate+"。"+KINDS[kind].seed;
+}
+function addTurn(who,text,cls,extra){
+  const d=document.createElement("div"); d.className="turn "+cls;
+  const w=document.createElement("p"); w.className="who"; w.textContent=who;
+  const l=document.createElement("p"); l.className="line"; l.textContent=text;
+  d.append(w,l);
+  if(extra){ const g=document.createElement("p"); g.className="got"; g.textContent=extra; d.appendChild(g); }
+  $("talk").appendChild(d);
+  d.scrollIntoView({block:"end",behavior:"smooth"});
+}
+function addSys(text,good){
+  const d=document.createElement("div"); d.className="sys"+(good?" good":"");
+  d.textContent=text; $("talk").appendChild(d);
+  d.scrollIntoView({block:"end",behavior:"smooth"});
+}
+function paintMeter(){
+  $("bars").innerHTML="";
+  for(let i=0;i<5;i++){const b=document.createElement("span");
+    b.className="bar"+(i<interest?" lit":""); $("bars").appendChild(b);}
+  $("strikes").textContent="✕".repeat(strikes);
+}
+function tick(){
+  const s=Math.floor((Date.now()-t0)/1000);
+  $("elapsed").textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
+}
+
+/* ═════ 音声 ═════ */
+function micFail(msg){
+  micOn=false; listening=false;
+  $("mic").disabled=true; $("mic").setAttribute("aria-pressed","false");
+  $("listening").className="listening";
+  $("useMic").setAttribute("aria-pressed","false");
+  $("micerr").className="micerr on"; $("micerr").textContent=msg;
+}
+function initRec(){
+  if(!SR) return null;
+  const r=new SR(); r.lang="ja-JP"; r.continuous=true; r.interimResults=true;
+  r.onresult=ev=>{
+    let fin="",mid="";
+    for(let i=ev.resultIndex;i<ev.results.length;i++){
+      const t=ev.results[i][0].transcript;
+      if(ev.results[i].isFinal) fin+=t; else mid+=t;
+    }
+    if(fin) heard+=fin;
+    $("input").value=(heard+mid).trim();
+  };
+  r.onerror=ev=>{
+    if(ev.error==="not-allowed"||ev.error==="service-not-allowed")
+      micFail("マイクが許可されていません。アドレスバー左のアイコン → マイクを「許可」にして再読み込みしてください。");
+    else if(ev.error!=="no-speech"&&ev.error!=="aborted")
+      micFail("音声認識が止まりました（"+ev.error+"）。キーボード入力で続けられます。");
+  };
+  r.onend=()=>{ if(listening){ try{r.start();}catch(e){} } };
+  return r;
+}
+function startListen(){
+  if(!micOn||closed) return;
+  if(!rec) rec=initRec();
+  if(!rec) return micFail("このブラウザは音声入力に対応していません。Chrome で開いてください。");
+  heard=""; $("input").value="";
+  listening=true;
+  $("mic").setAttribute("aria-pressed","true"); $("mic").textContent="言い終わり";
+  $("listening").className="listening on";
+  try{rec.start();}catch(e){}
+}
+function stopListen(andSend){
+  listening=false;
+  $("mic").setAttribute("aria-pressed","false"); $("mic").textContent="話す";
+  $("listening").className="listening";
+  if(rec){ try{rec.stop();}catch(e){} }
+  if(andSend && $("input").value.trim()) setTimeout(send,200);
+}
+function speak(text,then){
+  if(!ttsOn||!window.speechSynthesis){ if(then) then(); return; }
+  try{
+    window.speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang="ja-JP"; u.rate=1.08;
+    const v=(window.speechSynthesis.getVoices()||[]).find(x=>/ja[-_]JP/i.test(x.lang));
+    if(v) u.voice=v;
+    u.onend=()=>{ if(then) then(); };
+    u.onerror=()=>{ if(then) then(); };
+    window.speechSynthesis.speak(u);
+  }catch(e){ if(then) then(); }
+}
+
+$("micTest").onclick = async () => {
+  $("micerr").className="micerr";
+  $("voiceNote").textContent="確認しています…";
+  try{
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) throw new Error("NoMediaDevices");
+    const s=await navigator.mediaDevices.getUserMedia({audio:true});
+    s.getTracks().forEach(t=>t.stop());
+    $("voiceNote").textContent="マイクは使えます"+(SR?"。音声認識も利用できます。":"（ただし音声認識は非対応のブラウザです）。");
+  }catch(e){
+    micFail("マイクを使えませんでした（"+(e.name||e.message)+"）。アドレスバー左のアイコン → マイクを「許可」に。");
+  }
+};
+
+/* ═════ 進行 ═════ */
+$("go").onclick = () => {
+  $("setup").className="setup hide";
+  $("scene").className="scene on";
+  $("scene").innerHTML="<b>"+KINDS[kind].name+"</b>　横浜市内の単身向けマンション、平日夕方。扉が細く開いた。";
+  $("talk").className="talk on"; $("talk").innerHTML="";
+  $("compose").className="compose on";
+  $("hint").style.display="block";
+  $("meter").className="meter on";
+  said=[]; interest=0; strikes=0; landed=new Set(); closed=false;
+  paintMeter(); t0=Date.now(); tick(); timer=setInterval(tick,1000);
+  const first=pick(KINDS[kind].open);
+  addTurn("客",first,"cust");
+  speak(first, ()=>{ if(micOn) startListen(); });
+  $("input").focus();
+};
+
+function send(){
+  const text=$("input").value.trim();
+  if(!text||closed) return;
+  $("input").value=""; heard="";
+
+  // 刺さった手を判定（1つの手は1回だけ効く）
+  const fresh=[];
+  for(const m of MOVES){
+    if(!landed.has(m.key) && m.rx.test(text)){ landed.add(m.key); fresh.push(m.name); }
+  }
+  addTurn("あなた",text,"rep", fresh.length ? "刺さった：" + fresh.join(" / ") : "");
+  said.push(text);
+
+  if(/失礼し|ありがとうございま(す|した)/.test(text) && said.length>1) return finish("self");
+
+  let reply;
+  if(fresh.length){
+    strikes=0;
+    interest=Math.min(5,interest+fresh.length);
+    reply=pick(WARM[interest-1]);
+  }else{
+    strikes++;
+    if(strikes>=3){
+      paintMeter();
+      const bye=KINDS[kind].close;
+      addTurn("客",bye,"cust");
+      speak(bye);
+      return finish("closed");
+    }
+    reply=pick(KINDS[kind].miss[strikes-1]);
+  }
+  paintMeter();
+  addTurn("客",reply,"cust");
+
+  if(interest>=5){ speak(reply); return finish("open"); }
+  speak(reply, ()=>{ if(micOn&&!closed) startListen(); });
+}
+
+$("send").onclick=()=>{ stopListen(false); send(); };
+$("mic").onclick=()=>{ listening?stopListen(true):startListen(); };
+$("input").addEventListener("keydown",e=>{
+  if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)){e.preventDefault(); stopListen(false); send();}
+});
+$("useMic").onclick=()=>{ micOn=!micOn; $("useMic").setAttribute("aria-pressed",String(micOn));
+  if(!micOn) stopListen(false); };
+$("useTts").onclick=()=>{ ttsOn=!ttsOn; $("useTts").setAttribute("aria-pressed",String(ttsOn));
+  if(!ttsOn&&window.speechSynthesis) window.speechSynthesis.cancel(); };
+
+/* ═════ 採点 ═════ */
+function finish(how){
+  closed=true; clearInterval(timer); stopListen(false);
+  $("compose").className="compose"; $("hint").style.display="none";
+  addSys(how==="open" ? "— 検針票を取りに行きました —"
+       : how==="self" ? "— 商談を切り上げました —"
+       : "— 扉が閉まりました —", how==="open");
+
+  const mine=said.join("\n");
+
+  const mt=$("moves"); mt.innerHTML="";
+  for(const m of MOVES){
+    const ok=landed.has(m.key);
+    const tr=document.createElement("tr");
+    const th=document.createElement("th"); th.textContent=m.name;
+    const td=document.createElement("td"); td.className="mark "+(ok?"yes":"no");
+    td.textContent=ok?"○":"✕";
+    tr.append(th,td); mt.appendChild(tr);
+    if(!ok){
+      const tr2=document.createElement("tr");
+      const td2=document.createElement("td"); td2.colSpan=2;
+      td2.style.border="none"; td2.style.padding="0 0 11px";
+      const p=document.createElement("p"); p.className="tip"; p.textContent=m.tip;
+      td2.appendChild(p); tr2.appendChild(td2); mt.appendChild(tr2);
+    }
+  }
+
+  const ct=$("checks"); ct.innerHTML=""; let done=0;
+  for(const [name,rx] of CHECKS){
+    const ok=rx.test(mine); if(ok) done++;
+    const tr=document.createElement("tr");
+    const th=document.createElement("th"); th.textContent=name;
+    const td=document.createElement("td"); td.className="mark "+(ok?"yes":"no");
+    td.textContent=ok?"○":"✕";
+    tr.append(th,td); ct.appendChild(tr);
+  }
+
+  const secs=Math.floor((Date.now()-t0)/1000);
+  const mm=Math.floor(secs/60), ss=secs%60;
+  let v="";
+  if(how==="open") v="検針票を取りに行かせました。実データでは、ここまで来た商談の中央値は28.5分です。ここからが本番で、必須説明の抜けがそのまま後の苦情になります。";
+  else if(how==="closed") v="3回続けて刺さらずに扉が閉まりました。実データでも非契約の中央値は9.8分で、多くがこの形です。上の✕のうち1つでも打てていれば、会話は続いていました。";
+  else v="自分から切り上げました。引くのも手ですが、上の✕を見てください。打てる手が残っていたかどうかが分かれ目です。";
+  $("verdict").textContent =
+    "所要 "+mm+"分"+ss+"秒／関心 "+interest+"/5／刺さった手 "+landed.size+"/5／必須説明 "+done+"/7。"+v;
+
+  $("score").className="score on";
+}
+
+$("again").onclick=()=>{
+  if(window.speechSynthesis) window.speechSynthesis.cancel();
+  $("talk").innerHTML=""; $("talk").className="talk";
+  $("score").className="score"; $("scene").className="scene";
+  $("meter").className="meter"; $("setup").className="setup";
+  closed=false;
+};
+
+/* ═════ 起動 ═════ */
+paintKinds();
+if(!SR){
+  micOn=false;
+  $("useMic").setAttribute("aria-pressed","false"); $("useMic").disabled=true;
+  $("voiceNote").textContent="このブラウザは音声入力に対応していません。Chrome で開いてください。";
+}
+if(window.speechSynthesis) window.speechSynthesis.getVoices();
+</script>
+</body>
+</html>
